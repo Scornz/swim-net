@@ -13,13 +13,13 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-venv/
 build/
 develop-eggs/
 dist/
 downloads/
 eggs/
 .eggs/
+.vscode/
 parts/
 sdist/
 var/
