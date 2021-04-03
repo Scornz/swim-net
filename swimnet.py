@@ -127,8 +127,9 @@ class SwimNet:
         model = keras.Sequential()
         model.add(normalizer)
         # Two hidden layers of length 64 (relu is identity for anything above 0)
-        model.add(keras.layers.Dense(64, activation='relu'))
-        model.add(keras.layers.Dense(64, activation='relu'))
+        # We want negative values (indicating time dropped)
+        model.add(keras.layers.Dense(64, activation='softmax'))
+        model.add(keras.layers.Dense(64, activation='softmax'))
         # Output is one regresssion
         model.add(keras.layers.Dense(1))
         optimizer = tf.keras.optimizers.Adam(learning_rate=0.005)

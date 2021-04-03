@@ -6,6 +6,7 @@ from collections import defaultdict
 
 # Get list of events and ages
 from swimnet import events, ages, metrics
+from metrics import average_percentage_improvement, average_improvement_top_n
 
 names_location = "data/test_names.csv"
 # Path needs to have backslashes (chrome driver doesn't like forward slashes)
@@ -31,9 +32,14 @@ for file in os.listdir(xlsx_location):
     name = f"{names[0]} {names[1]}"
     file_path = os.path.join(xlsx_location, file)
     # Read the data in from the excel sheet
+    # This is the data object to be added to the data frame 
+    # (will only contain name, highschool times, and output metrics)
     datum = {"Name": name}
+    # This contains all events throughout all ages (used to prevent duplicates)
+    # Highschool and college
+    all_times = {}
+
     swimmer = pd.read_excel(file_path, engine='openpyxl')
-    
     
     # These two dictionaries will contain all events swam
     # Key is the event, and the value is a list of times (maximum of 4 for 4 years)
@@ -46,11 +52,24 @@ for file in os.listdir(xlsx_location):
         age = int(row['Age'])
         power_points = int(row['Power Points'])
         column = f"{event} {age}"
+        
         # Only add this time IF IT IS NOT ALREADY ADDED
         # This will account for LCM times at the same age
-        if column not in datum and column in columns:
-            datum[column] = time
+        # Make sure the event is in the events list (we don't want 800 FR)
+        if column not in all_times and event in events:
+            all_times[column] = time
+            # If this is something we should be adding to the CSV file
+            # Equivalent to checking if the age is under 18
+            if column in columns:
+                datum[column] = time
+                highschool_times[event].append((time, power_points))
+            else:
+                # We must be in college then
+                college_times[event].append((time, power_points))
 
+    
+    # Get an average percentage improved
+    datum['Average Percentage Improved'] = average_improvement_top_n(3, highschool_times, college_times)
     print(f"Finished processing {name}.")
     data = data.append(datum, ignore_index=True)
 
