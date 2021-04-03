@@ -19,12 +19,14 @@ import seaborn as sns
 import time
 
 # List of all events
-events = ("50 Free", "100 Free", "200 Free", "500 Free", "1000 Free", "1650 Free",
-          "100 Back", "200 Back", "100 Breast", "200 Breast", "100 Fly", "200 Fly",
+events = ("50 FR", "100 FR", "200 FR", "500 FR", "1000 FR", "1650 FR",
+          "100 BK", "200 BK", "100 BR", "200 BR", "100 FL", "200 FL",
           "200 IM", "400 IM")
 
 # List of all ages in the data
 ages = ("15", "16", "17", "18")
+
+metrics = ("Average Percentage Improved", "Average Power Points")
 
 class SwimNet:
 
@@ -33,7 +35,6 @@ class SwimNet:
         print(tf.__version__)
         self.epochs = epochs
         # Load the data set then train the model
-        self.test = "NO"
         # Send the data location and whether or not to use DIFFERENCES in times
         self.load_dataset(data_loc, use_diff)
         self.train()
