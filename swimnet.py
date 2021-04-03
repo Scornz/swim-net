@@ -1,3 +1,6 @@
+import os
+# Stop normal DEBUG from tensorflow (it's annoying)
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 # ML/AI
 import tensorflow as tf
 from tensorflow import keras
@@ -13,25 +16,41 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+import time
+
+# List of all events
+events = ("50 Free", "100 Free", "200 Free", "500 Free", "1000 Free", "1650 Free",
+          "100 Back", "200 Back", "100 Breast", "200 Breast", "100 Fly", "200 Fly",
+          "200 IM", "400 IM")
+
+# List of all ages in the data
+ages = ("15", "16", "17", "18")
 
 class SwimNet:
 
-    def __init__(self, data_loc, epochs=120):
+    def __init__(self, data_loc, epochs=120, use_diff = False):
+        # Make sure the venv is all set up and running correctly
+        print(tf.__version__)
         self.epochs = epochs
         # Load the data set then train the model
         self.test = "NO"
-        self.load_dataset(data_loc)
+        # Send the data location and whether or not to use DIFFERENCES in times
+        self.load_dataset(data_loc, use_diff)
         self.train()
 
-    def load_dataset(self, data_location):
-        raw_dataset = pd.read_csv(
-            data_location, na_values='?', delimiter=',', skipinitialspace=True)
-
+    def load_dataset(self, data_location, use_diff):
+        raw_dataset = pd.read_csv(data_location, na_values='?', delimiter=',', skipinitialspace=True)
         # Copy the raw-dataset
         # There will be 56 data points (14 events across 4 ages in highschool)
         self.dataset = raw_dataset.copy()
+
+        # If we are to use the DIFFERENCES between time (solely focused on improvement)
+        if use_diff:
+            self.__process_difference_dataset()
+
         # Get 85% of all data to train with
-        self.train_dataset = self.dataset.sample(frac=0.9)
+        # Set the random state so we get consistent samples
+        self.train_dataset = self.dataset.sample(frac=0.9, random_state=12)
         # Drop all indices used in the training dataset
         self.test_dataset = self.dataset.drop(self.train_dataset.index)
         self.train_labels = self.train_dataset.pop('Points')
@@ -39,14 +58,6 @@ class SwimNet:
         # Pop the names off of this dataset since this is not necessary to train the NN
         self.train_dataset.pop('Name')
         self.test_dataset.pop('Name')
-
-        # List of all events
-        events = ["50 Free", "100 Free", "200 Free", "500 Free", "1000 Free", "1650 Free",
-                  "100 Back", "200 Back", "100 Breast", "200 Breast", "100 Fly", "200 Fly",
-                  "200 IM", "400 IM"]
-
-        # List of all ages in the data
-        ages = ["15", "16", "17", "18"]
 
         # Sums up all ages and averages them for an "average time"
         # This is useful simply to show correlation between speed
@@ -75,18 +86,22 @@ class SwimNet:
 
     def train(self):
 
+        print(f"Starting training for {self.epochs} epochs on {len(self.train_dataset)} data points.")
+        start = time.time()
         # Create a normalizing layer
         normalizer = preprocessing.Normalization()
         normalizer.adapt(self.train_dataset)
         # Create the defined model
         model = self.__create_model(normalizer)
-        testing_history_callback = TestingHistory(
-            self.test_dataset, self.test_labels)
+        testing_history_callback = TestingHistory(self.test_dataset, self.test_labels)
         # Number of epochs to run (one pass of all training data)
         self.history = model.fit(self.train_dataset, self.train_labels, epochs=self.epochs, validation_split=0.1,
-                                 verbose=1, callbacks=[testing_history_callback])
+                                 verbose=0, callbacks=[testing_history_callback])
 
         self.testing_history = testing_history_callback.test_loss
+
+        end = time.time()
+        print(f"Training concluded in {round(end - start, 2)} seconds.")
 
     # Plot and display a graph of the loss over time
     def plot_loss(self):
@@ -120,6 +135,28 @@ class SwimNet:
         # It is the sum of the absolute differences between the labels and the predictions
         model.compile(loss='mean_absolute_error', optimizer=optimizer)
         return model
+
+    def __process_difference_dataset(self):
+        for index, row in self.dataset.iterrows():
+            dist = {}
+            for e in events:
+                # previous time
+                prev = -1
+                for a in ages:
+                    # Get the time (append event and age)
+                    time = row[f'{e} {a}']
+                    if time == 0:
+                        continue
+
+                    # The first recorded time will have an improvement of "zero"
+                    # This could maybe be modified, not sure what would go well here other than that
+                    if prev == -1:
+                        prev = time
+                        row[f'{e} {a}'] = 0
+                    
+                    # Subtract the time (so negative means drop, positive means added)
+                    self.dataset.loc[index, [f'{e} {a}']] = time - prev
+                    prev = time
 
 
 # Callback function that allows for the testing dataset to be run after each epoch
