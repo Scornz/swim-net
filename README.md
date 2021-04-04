@@ -5,6 +5,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
+  <img src="assets/icon.png" alt="Icon" width="80" height="80">
   <h3 align="center">swim-net</h3>
 
   <p align="center">
