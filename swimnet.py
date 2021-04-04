@@ -8,6 +8,10 @@ from tensorflow.keras import layers
 from tensorflow.keras import optimizers
 from tensorflow.keras.layers.experimental import preprocessing
 
+# Feature selection
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import f_regression
+
 # Import numpy/pandas
 import numpy as np
 import pandas as pd
@@ -55,7 +59,7 @@ class SwimNet:
 
         # Get 85% of all data to train with
         # Set the random state so we get consistent samples
-        self.train_dataset = self.dataset.sample(frac=0.9, random_state=12)
+        self.train_dataset = self.dataset.sample(frac=0.9)
         # Drop all indices used in the training dataset
         self.test_dataset = self.dataset.drop(self.train_dataset.index)
         self.train_labels = self.train_dataset.pop(self.metric)
@@ -63,6 +67,15 @@ class SwimNet:
         # Pop the names off of this dataset since this is not necessary to train the NN
         self.train_dataset.pop('Name')
         self.test_dataset.pop('Name')
+
+        # configure to select a subset of features
+        fs = SelectKBest(score_func=f_regression, k=8)
+        # learn relationship from training data
+        fs.fit(self.train_dataset, self.train_labels)
+        # transform train input data
+        self.train_fs = fs.transform(self.train_dataset)
+        # transform test input data
+        self.test_fs = fs.transform(self.test_dataset)
 
         # Sums up all ages and averages them for an "average time"
         # This is useful simply to show correlation between speed
@@ -95,12 +108,12 @@ class SwimNet:
         start = time.time()
         # Create a normalizing layer
         normalizer = preprocessing.Normalization()
-        normalizer.adapt(self.train_dataset)
+        normalizer.adapt(self.train_fs)
         # Create the defined model
         model = self.__create_model(normalizer)
-        testing_history_callback = TestingHistory(self.test_dataset, self.test_labels)
+        testing_history_callback = TestingHistory(self.test_fs, self.test_labels)
         # Number of epochs to run (one pass of all training data)
-        self.history = model.fit(self.train_dataset, self.train_labels, epochs=self.epochs, validation_split=0.1,
+        self.history = model.fit(self.train_fs, self.train_labels, epochs=self.epochs, validation_split=0.1,
                                  verbose=0, callbacks=[testing_history_callback])
 
         self.testing_history = testing_history_callback.test_loss
@@ -116,6 +129,7 @@ class SwimNet:
         plt.plot(self.testing_history, label='test_loss')
         plt.xlabel('Epoch #')
         plt.ylabel('Error/Loss (mae)')
+        plt.title(self.metric)
         plt.legend()
         plt.grid(True)
         plt.show()
@@ -131,12 +145,11 @@ class SwimNet:
         model = keras.Sequential()
         model.add(normalizer)
         # Two hidden layers of length 64 (relu is identity for anything above 0)
-        # We want negative values (indicating time dropped)
-        model.add(keras.layers.Dense(32, activation='relu'))
-        #model.add(keras.layers.Dense(64, activation='relu'))
+        model.add(keras.layers.Dense(64, activation='relu'))
+        model.add(keras.layers.Dense(64, activation='relu'))
         # Output is one regresssion
         model.add(keras.layers.Dense(1))
-        optimizer = tf.keras.optimizers.Adam(learning_rate=0.007)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
         # Mean absolute error (mae) is the among the best choices for a regession model here
         # It is the sum of the absolute differences between the labels and the predictions
         model.compile(loss='mean_absolute_error', optimizer=optimizer)

@@ -34,10 +34,9 @@ def average_percentage_improvement(highschool_times, college_times):
         n += 1
 
     if n == 0:
-        print("Non-value, something went wrong here.")
-        return 0
+        return -1
 
-    return total_percentage / n
+    return (total_percentage / n + 1) * 100
 
 def average_improvement_top_n(n, highschool_times, college_times):
 
@@ -59,10 +58,9 @@ def average_improvement_top_n(n, highschool_times, college_times):
         valid_events += 1
 
     if valid_events == 0:
-        print("Non-value, something went wrong here.")
-        return 0
+        return -1
 
-    return (total_percentage / valid_events) * 100 + 10
+    return (total_percentage / valid_events + 1) * 100
 
 def average_ratio_top_n(n, highschool_times, college_times):
 
