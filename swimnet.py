@@ -26,16 +26,17 @@ events = ("50 FR", "100 FR", "200 FR", "500 FR", "1000 FR", "1650 FR",
 # List of all ages in the data
 ages = ("15", "16", "17", "18")
 
-metrics = ("Average Percentage Improved", "Average Power Points")
+metrics = ("Top 3 Power Points", "Top 3 Ratio", "Top 3 Improvement", "Top 5 Improvement")
 
 class SwimNet:
 
-    def __init__(self, data_loc, epochs=120, use_diff = False):
+    def __init__(self, data_loc, epochs=120, use_diff = False, metric="Top 3 Improvement"):
         # Make sure the venv is all set up and running correctly
         print(tf.__version__)
         self.epochs = epochs
         # Load the data set then train the model
         # Send the data location and whether or not to use DIFFERENCES in times
+        self.metric = metric
         self.load_dataset(data_loc, use_diff)
         self.train()
 
@@ -44,6 +45,9 @@ class SwimNet:
         # Copy the raw-dataset
         # There will be 56 data points (14 events across 4 ages in highschool)
         self.dataset = raw_dataset.copy()
+
+        # Drop all metrics that we are not using
+        self.dataset = self.dataset.drop(columns=[m for m in metrics if m != self.metric])
 
         # If we are to use the DIFFERENCES between time (solely focused on improvement)
         if use_diff:
@@ -54,8 +58,8 @@ class SwimNet:
         self.train_dataset = self.dataset.sample(frac=0.9, random_state=12)
         # Drop all indices used in the training dataset
         self.test_dataset = self.dataset.drop(self.train_dataset.index)
-        self.train_labels = self.train_dataset.pop('Points')
-        self.test_labels = self.test_dataset.pop('Points')
+        self.train_labels = self.train_dataset.pop(self.metric)
+        self.test_labels = self.test_dataset.pop(self.metric)
         # Pop the names off of this dataset since this is not necessary to train the NN
         self.train_dataset.pop('Name')
         self.test_dataset.pop('Name')
@@ -128,11 +132,11 @@ class SwimNet:
         model.add(normalizer)
         # Two hidden layers of length 64 (relu is identity for anything above 0)
         # We want negative values (indicating time dropped)
-        model.add(keras.layers.Dense(64, activation='softmax'))
-        model.add(keras.layers.Dense(64, activation='softmax'))
+        model.add(keras.layers.Dense(32, activation='relu'))
+        #model.add(keras.layers.Dense(64, activation='relu'))
         # Output is one regresssion
         model.add(keras.layers.Dense(1))
-        optimizer = tf.keras.optimizers.Adam(learning_rate=0.005)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.007)
         # Mean absolute error (mae) is the among the best choices for a regession model here
         # It is the sum of the absolute differences between the labels and the predictions
         model.compile(loss='mean_absolute_error', optimizer=optimizer)

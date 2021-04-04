@@ -45,7 +45,6 @@ def average_improvement_top_n(n, highschool_times, college_times):
     total_percentage = 0
     # Get top events FROM highschool
     top_events = get_top_n_events(n, highschool_times)
-    print(top_events)
     for event in top_events:
         if not event in college_times:
             continue
@@ -63,4 +62,49 @@ def average_improvement_top_n(n, highschool_times, college_times):
         print("Non-value, something went wrong here.")
         return 0
 
-    return total_percentage / valid_events
+    return (total_percentage / valid_events) * 100 + 10
+
+def average_ratio_top_n(n, highschool_times, college_times):
+
+    valid_events = 0
+    total_ratio = 0
+    # Get top events FROM highschool
+    top_events = get_top_n_events(n, highschool_times)
+    for event in top_events:
+        if not event in college_times:
+            continue
+
+        # Get the best time in highschool compared to the best time in college
+        best_highschool = sorted(highschool_times[event])[0][0]
+        best_college = sorted(college_times[event])[0][0]
+
+         # A negative percentage indicates improvement
+        ratio = best_college / best_highschool
+        total_ratio += ratio
+        valid_events += 1
+
+    if valid_events == 0:
+        return -1
+
+    return (total_ratio / valid_events) * 100
+
+def average_power_points_top_n(n, highschool_times, college_times):
+
+    valid_events = 0
+    total_power_points = 0
+    # Get top events FROM highschool
+    top_events = get_top_n_events(n, highschool_times)
+    for event in top_events:
+        if not event in college_times:
+            continue
+
+        # Get the best time in highschool compared to the best time in college
+        best_college = sorted(college_times[event])[0][1]
+         # A negative percentage indicates improvement
+        total_power_points += best_college
+        valid_events += 1
+
+    if valid_events == 0:
+        return -1
+
+    return (total_power_points / valid_events)

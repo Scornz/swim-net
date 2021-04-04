@@ -6,7 +6,7 @@ from collections import defaultdict
 
 # Get list of events and ages
 from swimnet import events, ages, metrics
-from metrics import average_percentage_improvement, average_improvement_top_n
+from metrics import *
 
 names_location = "data/test_names.csv"
 # Path needs to have backslashes (chrome driver doesn't like forward slashes)
@@ -69,10 +69,18 @@ for file in os.listdir(xlsx_location):
 
     
     # Get an average percentage improved
-    datum['Average Percentage Improved'] = average_improvement_top_n(3, highschool_times, college_times)
+    datum['Top 3 Ratio'] = average_ratio_top_n(3, highschool_times, college_times)
+    datum['Top 3 Power Points'] = average_power_points_top_n(3, highschool_times, college_times)
+    datum['Top 3 Improvement'] = average_improvement_top_n(3, highschool_times, college_times)
+    datum['Top 5 Improvement'] = average_improvement_top_n(5, highschool_times, college_times)
+
+    if (datum['Top 3 Ratio'] == -1 or datum['Top 5 Improvement'] == -1):
+        print("Non-value, something went wrong here. Skipping...")
+        continue
+
     print(f"Finished processing {name}.")
     data = data.append(datum, ignore_index=True)
 
 # All non-existent times should be 0 (instead of NaN)
 data = data.fillna(0)
-print(data)
+data.to_csv('data/swimmers.csv', sep=',', header=True, columns=columns, index = False)
