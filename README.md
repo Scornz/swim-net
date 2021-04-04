@@ -20,7 +20,7 @@
 
 ## About The Project
 
-A machine learning approach to predicting the value of an athlete on the collegiate level.
+A project made in only 36 hours for [HackPrinceton](https://www.hackprinceton.com/). More information on how and why this was made is posted on [Devpost](https://devpost.com/software/swim-net).
 
 <!--Using times and performance from highschool, the aim is to be able to accurately and efficiently predict an athlete's
 performance in collegiate athletics.-->
@@ -28,7 +28,7 @@ performance in collegiate athletics.-->
 ### Built With
 
 -   [VSCode](https://code.visualstudio.com/)
--   [IntelliJ IDEA](https://www.jetbrains.com/idea/)
+-   [TensorFlow](https://www.tensorflow.org/)
 
 <!-- GETTING STARTED -->
 
@@ -41,6 +41,7 @@ To get a local copy up and running follow these simple steps.
 In order to build and run the above code, the following are required:
 
 -   [Python 3.9](https://www.python.org/downloads/release/python-390/)
+-   [ChromeDriver](https://chromedriver.chromium.org/) (only for web scraping data)
 
 ### Installation
 
