@@ -67,7 +67,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 -   Michael Scornavacca - [mas23@princeton.edu](mailto:mas23@princeton.edu?subject=[GitHub]%20Source%20swim-net%20)
 -   Xander Gardner - [avg3@princeton.edu](mailto:avg3@princeton.edu?subject=[GitHub]%20Source%20swim-net%20)
--   Max Kreidl - [mkreidl@princeton.edu](mailto:mkreidl@princeton.edu?subject=[GitHub]%20Source%20swim-net%20)
+-   Max Kreidl - [mkreidl8@gmail.com](mailto:mkreidl8@gmail.com?subject=[GitHub]%20Source%20swim-net%20)
 
 Project Link - [https://github.com/Scornz/swim-net](https://github.com/Scornz/swim-net)
 
